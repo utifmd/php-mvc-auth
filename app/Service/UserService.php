@@ -5,8 +5,9 @@ namespace DudeGenuine\PHP\MVC\Service;
 use DudeGenuine\PHP\MVC\Config\Database;
 use DudeGenuine\PHP\MVC\Domain\User;
 use DudeGenuine\PHP\MVC\Exception\ValidationException;
+use DudeGenuine\PHP\MVC\Model\UserLoginRequest;
 use DudeGenuine\PHP\MVC\Model\UserRegisterRequest;
-use DudeGenuine\PHP\MVC\Model\UserRegisterResponse;
+use DudeGenuine\PHP\MVC\Model\UserResponse;
 use DudeGenuine\PHP\MVC\Repository\UserRepository;
 
 class UserService
@@ -17,13 +18,9 @@ class UserService
     {
         $this->repository = $repository;
     }
-
-    /**
-     * @throws ValidationException
-     */
-    function register(UserRegisterRequest $request): UserRegisterResponse
+    function register(UserRegisterRequest $request): UserResponse
     {
-        $this->validateRequest($request);
+        $this->validateRegisterRequest($request);
         try {
             Database::beginTransaction();
             $isUserExist = $this->repository->findById($request->id);
@@ -37,7 +34,7 @@ class UserService
             $result = $this->repository->save($user);
             Database::commitTransaction();
 
-            return new UserRegisterResponse(
+            return new UserResponse(
                 id: $result->id,
                 name: $result->name,
                 password: $result->password,
@@ -47,9 +44,31 @@ class UserService
             throw $exception;
         }
     }
-    private function validateRequest(UserRegisterRequest $request): void
+    private function validateRegisterRequest(UserRegisterRequest $request): void
     {
         if (trim($request->id) == "" || trim($request->name) == "" || trim($request->password) == ""){
+            throw new ValidationException("Invalid input format");
+        }
+    }
+
+    function login(UserLoginRequest $request): UserResponse
+    {
+        $this->validateLoginRequest($request);
+        $user = $this->repository->findById($request->id);
+
+        if ($user == null)
+            throw new ValidationException('Login failed, user not found.');
+
+        if (!password_verify($request->password, $user->password))
+            throw new ValidationException("Login failed, id or username does\'nt match");
+
+        return new UserResponse(
+            id: $user->id, name: $user->name, password: $user->password
+        );
+    }
+    private function validateLoginRequest(UserLoginRequest $request): void
+    {
+        if (trim($request->id) == "" || trim($request->password) == ""){
             throw new ValidationException("Invalid input format");
         }
     }

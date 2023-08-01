@@ -3,7 +3,9 @@
 namespace DudeGenuine\PHP\MVC\Service;
 
 use DudeGenuine\PHP\MVC\Config\Database;
+use DudeGenuine\PHP\MVC\Domain\User;
 use DudeGenuine\PHP\MVC\Exception\ValidationException;
+use DudeGenuine\PHP\MVC\Model\UserLoginRequest;
 use DudeGenuine\PHP\MVC\Model\UserRegisterRequest;
 use DudeGenuine\PHP\MVC\Repository\UserRepository;
 use PHPUnit\Framework\TestCase;
@@ -56,5 +58,52 @@ class UserServiceTest extends TestCase
         $this->expectException(ValidationException::class);
 
         $this->userService->register($userRequest2);
+    }
+
+    function testLoginNotFound()
+    {
+        $this->expectException(ValidationException::class);
+
+        $userLoginRequest = new UserLoginRequest(id: "utifmd", password: "121212");
+
+        $this->userService->login($userLoginRequest);
+    }
+
+    function testLoginWrongPassword()
+    {
+        $userRegisterRequest = new UserRegisterRequest(
+            id: "utifmd",
+            name: "Utif Milkedori",
+            password: "121212"
+        );
+        $this->userService->register($userRegisterRequest);
+
+        $userLoginRequest = new UserLoginRequest(
+            id: "utifmd",
+            password: "wrongPassword"
+        );
+        $this->expectException(ValidationException::class);
+
+        $userResponse = $this->userService->login($userLoginRequest);
+
+        self::assertFalse(password_verify($userLoginRequest->password, $userResponse->password));
+    }
+    function testLoginSuccess()
+    {
+        $userRegisterRequest = new UserRegisterRequest(
+            id: "utifmd",
+            name: "Utif Milkedori",
+            password: "121212"
+        );
+        $this->userService->register($userRegisterRequest);
+
+        $userLoginRequest = new UserLoginRequest(
+            id: "utifmd",
+            password: "121212"
+        );
+        $userResponse = $this->userService->login($userLoginRequest);
+
+        self::assertEquals($userLoginRequest->id, $userResponse->id);
+        self::assertTrue(password_verify($userLoginRequest->password, $userResponse->password));
     }
 }
