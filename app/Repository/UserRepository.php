@@ -31,11 +31,11 @@ class UserRepository
         $statement->execute([$id]);
         try {
             if ($row = $statement->fetch()) {
-                $user = new User();
-                $user->id = $row['id'];
-                $user->name = $row['name'];
-                $user->password = $row['password'];
-                return $user;
+                return new User(
+                    id: $row['id'],
+                    name: $row['name'],
+                    password: $row['password']
+                );
             }
             return null;
         } finally {

@@ -18,11 +18,11 @@ class UserRepositoryTest extends TestCase
 
     function testSaveSuccess()
     {
-        $user = new User();
-        $user->id = "utifmd";
-        $user->name = "Utif Milkedori";
-        $user->password = "121212";
-
+        $user = new User(
+            id: "utifmd",
+            name: "Utif Milkedori",
+            password: "121212"
+        );
         $this->userRepository->save($user);
 
         $result = $this->userRepository->findById($user->id);
