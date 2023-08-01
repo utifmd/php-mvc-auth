@@ -18,11 +18,13 @@ class UserService
         $this->repository = $repository;
     }
 
+    /**
+     * @throws ValidationException
+     */
     function register(UserRegisterRequest $request): UserRegisterResponse
     {
+        $this->validateRequest($request);
         try {
-            $this->validateRequest($request);
-
             Database::beginTransaction();
             $isUserExist = $this->repository->findById($request->id);
             if ($isUserExist != null) throw new ValidationException("User $request->id already exist.");
@@ -40,9 +42,9 @@ class UserService
                 name: $result->name,
                 password: $result->password,
             );
-        } catch (ValidationException $e) {
+        } catch (\Exception $exception) {
             Database::rollbackTransaction();
-            throw $e;
+            throw $exception;
         }
     }
     private function validateRequest(UserRegisterRequest $request): void

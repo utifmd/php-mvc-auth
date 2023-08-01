@@ -8,15 +8,12 @@ class UserRepository
 {
     private \PDO $connection;
 
-    /**
-     * @param \PDO $connection
-     */
-    public function __construct(\PDO $connection)
+    function __construct(\PDO $connection)
     {
         $this->connection = $connection;
     }
 
-    public function save(User $user): User
+    function save(User $user): User
     {
         $statement = $this->connection->prepare("INSERT INTO users(id, name, password) VALUES (?, ?, ?)");
         $statement->execute([
@@ -25,7 +22,7 @@ class UserRepository
         return $user;
     }
 
-    public function findById(string $id): ?User
+    function findById(string $id): ?User
     {
         $statement = $this->connection->prepare("SELECT id, name, password FROM users WHERE id = ?");
         $statement->execute([$id]);
@@ -43,7 +40,7 @@ class UserRepository
         }
     }
 
-    public function deleteAll(): void
+    function deleteAll(): void
     {
         $this->connection->exec("DELETE FROM users");
     }

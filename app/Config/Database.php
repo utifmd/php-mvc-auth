@@ -21,14 +21,14 @@ class Database
 
     public static function beginTransaction(): void
     {
-        self::$pdo->beginTransaction();
+        self::$pdo?->beginTransaction();
     }
     public static function commitTransaction(): void
     {
-        self::$pdo->commit();
+        self::$pdo?->commit();
     }
     public static function rollbackTransaction(): void
     {
-        self::$pdo->rollBack();
+        self::$pdo?->rollBack();
     }
 }

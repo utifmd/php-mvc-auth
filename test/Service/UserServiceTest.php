@@ -43,7 +43,7 @@ class UserServiceTest extends TestCase
         $this->userService->register($userRequest);
     }
 
-    function testRegisterFailedCauseDuplicate()
+    function testRegisterFailedDuplicate()
     {
         $userRequest1 = new UserRegisterRequest(
             id: "utifmd", name: "Utif Milkedori", password: "121212"
