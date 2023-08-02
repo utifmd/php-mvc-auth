@@ -14,8 +14,7 @@ class View
     static function redirect(string $path): void
     {
         header("Location: $path");
-        if (getenv("mode") !== "test"){
-            exit();
-        }
+        if (getenv("mode") == "test") return;
+        exit();
     }
 }
