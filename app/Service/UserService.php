@@ -50,7 +50,6 @@ class UserService
             throw new ValidationException("Invalid input format");
         }
     }
-
     function login(UserLoginRequest $request): UserResponse
     {
         $this->validateLoginRequest($request);

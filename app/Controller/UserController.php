@@ -7,17 +7,24 @@ use DudeGenuine\PHP\MVC\Config\Database;
 use DudeGenuine\PHP\MVC\Exception\ValidationException;
 use DudeGenuine\PHP\MVC\Model\UserLoginRequest;
 use DudeGenuine\PHP\MVC\Model\UserRegisterRequest;
+use DudeGenuine\PHP\MVC\Repository\SessionRepository;
 use DudeGenuine\PHP\MVC\Repository\UserRepository;
+use DudeGenuine\PHP\MVC\Service\SessionService;
 use DudeGenuine\PHP\MVC\Service\UserService;
 
 class UserController
 {
     private UserService $userService;
+    private SessionService $sessionService;
 
     public function __construct()
     {
-        $userRepository = new UserRepository(Database::getConnection());
+        $connection = Database::getConnection();
+        $userRepository = new UserRepository($connection);
         $this->userService = new UserService($userRepository);
+
+        $sessionRepository = new SessionRepository($connection);
+        $this->sessionService = new SessionService($sessionRepository, $userRepository);
     }
 
     function viewRegister(): void
@@ -63,7 +70,10 @@ class UserController
             $userLoginRequest = new UserLoginRequest(
                 id: $_POST['id'], password: $_POST['password']
             );
-            $this->userService->login($userLoginRequest);
+            $userResponse = $this->userService->login($userLoginRequest);
+
+            $this->sessionService->create($userResponse->id);
+
             View::redirect('/');
 
         } catch (ValidationException $exception) {

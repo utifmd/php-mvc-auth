@@ -19,48 +19,41 @@ class SessionRepositoryTest extends TestCase
 
         $this->sessionRepository->deleteAll();
         $this->userRepository->deleteAll();
+
+        $user = new User(
+            id: "utifmd", name: "Utif Milkedori", password: "121212"
+        );
+        $this->userRepository->save($user);
     }
 
     public function testSaveSuccess()
     {
-        $user = new User(
-            id: "utifmd", name: "Utif Milkedori", password: "121212"
-        );
-        $this->userRepository->save($user);
 
         $session = new Session(
-            id: "session_utifmd", user_id: "utifmd"
+            id: "session_utifmd", userId: "utifmd"
         );
         $result = $this->sessionRepository->save($session);
 
         self::assertEquals($result->id, $session->id);
-        self::assertEquals($result->user_id, $session->user_id);
+        self::assertEquals($result->userId, $session->userId);
     }
 
     public function testFailedSaveIncorrectFKUserId()
     {
-        $user = new User(
-            id: "utifmd", name: "Utif Milkedori", password: "121212"
-        );
-        $this->userRepository->save($user);
 
         $this->expectException(\PDOException::class);
 
         $session = new Session(
-            id: "session_utifmd", user_id: "utid"
+            id: "session_utifmd", userId: "utid"
         );
         $result = $this->sessionRepository->save($session);
     }
 
     public function testDeleteByIdSuccess()
     {
-        $user = new User(
-            id: "utifmd", name: "Utif Milkedori", password: "121212"
-        );
-        $this->userRepository->save($user);
 
         $session = new Session(
-            id: "session_utifmd", user_id: "utifmd"
+            id: "session_utifmd", userId: "utifmd"
         );
         $response = $this->sessionRepository->save($session);
 
@@ -73,13 +66,9 @@ class SessionRepositoryTest extends TestCase
 
     public function testFindByIdNotFound()
     {
-        $user = new User(
-            id: "utifmd", name: "Utif Milkedori", password: "121212"
-        );
-        $this->userRepository->save($user);
 
         $session = new Session(
-            id: "session_utifmd", user_id: "utifmd"
+            id: "session_utifmd", userId: "utifmd"
         );
         $this->sessionRepository->save($session);
 

@@ -6,9 +6,9 @@ use DudeGenuine\PHP\MVC\Domain\Session;
 
 class SessionRepository
 {
-    private ?\PDO $connection = null;
+    private \PDO $connection;
 
-    public function __construct(?\PDO $pdo)
+    public function __construct(\PDO $pdo)
     {
         $this->connection = $pdo;
     }
@@ -17,7 +17,7 @@ class SessionRepository
     {
         $statement = $this->connection->prepare("INSERT INTO sessions(id, user_id) VALUES (?, ?)");
         $statement->execute([
-            $session->id, $session->user_id
+            $session->id, $session->userId
         ]);
         return $session;
     }
@@ -29,7 +29,7 @@ class SessionRepository
         try {
             if ($row = $statement->fetch()) {
                 return new Session(
-                    id: $row['id'], user_id: $row['user_id']
+                    id: $row['id'], userId: $row['user_id']
                 );
             }
             return null;
