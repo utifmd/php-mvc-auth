@@ -5,6 +5,7 @@ namespace DudeGenuine\PHP\MVC\Controller;
 use DudeGenuine\PHP\MVC\App\View;
 use DudeGenuine\PHP\MVC\Config\Database;
 use DudeGenuine\PHP\MVC\Exception\ValidationException;
+use DudeGenuine\PHP\MVC\Model\UserLoginRequest;
 use DudeGenuine\PHP\MVC\Model\UserRegisterRequest;
 use DudeGenuine\PHP\MVC\Repository\UserRepository;
 use DudeGenuine\PHP\MVC\Service\UserService;
@@ -44,6 +45,32 @@ class UserController
                 "error" => $exception->getMessage()
             ];
             View::render('User/register', $model);
+        }
+    }
+
+    function viewLogin(): void
+    {
+        $model = [
+            "title" => "Login",
+            "error" => "Login screen"
+        ];
+        View::render('User/login', $model);
+    }
+
+    function submitLogin(): void
+    {
+        try {
+            $userLoginRequest = new UserLoginRequest(
+                id: $_POST['id'], password: $_POST['password']
+            );
+            $this->userService->login($userLoginRequest);
+            View::redirect('/');
+
+        } catch (ValidationException $exception) {
+            View::render('User/login', [
+                "title" => "Login",
+                "error" => $exception->getMessage()
+            ]);
         }
     }
 }

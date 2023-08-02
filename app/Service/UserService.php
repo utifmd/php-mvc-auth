@@ -57,10 +57,10 @@ class UserService
         $user = $this->repository->findById($request->id);
 
         if ($user == null)
-            throw new ValidationException('Login failed, user not found.');
+            throw new ValidationException('Login failed, user not found');
 
         if (!password_verify($request->password, $user->password))
-            throw new ValidationException("Login failed, id or username does\'nt match");
+            throw new ValidationException("Login failed, id or username does not match");
 
         return new UserResponse(
             id: $user->id, name: $user->name, password: $user->password
