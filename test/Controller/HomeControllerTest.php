@@ -39,7 +39,9 @@ class HomeControllerTest extends TestCase
     public function testViewDashboard()
     {
         $user = new User(
-            id: "utifmd", name: "Utif Milkedori", password: "121212"
+            id: "utifmd",
+            name: "Utif Milkedori",
+            password: password_hash("121212", PASSWORD_BCRYPT)
         );
         $this->userRepository->save($user);
 
@@ -52,10 +54,9 @@ class HomeControllerTest extends TestCase
 
         $this->homeController->view();
 
-//        $this->expectOutputRegex("[Dashboard]");
-        $this->expectOutputRegex("[Hello]");
-//        $this->expectOutputRegex("[Profile]");
-//        $this->expectOutputRegex("[Password]");
-//        $this->expectOutputRegex("[Utif Milkedori]");
+        $this->expectOutputRegex("[Hello, $user->name]");
+        $this->expectOutputRegex("[Profile]");
+        $this->expectOutputRegex("[Password]");
+        $this->expectOutputRegex("[Utif Milkedori]");
     }
 }

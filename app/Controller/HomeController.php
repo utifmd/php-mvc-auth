@@ -19,7 +19,6 @@ class HomeController
         $sessionRepository = new SessionRepository($connection);
         $this->sessionService = new SessionService($sessionRepository, $userRepository);
     }
-
     function view(): void
     {
         $signedInUser = $this->sessionService->current();
