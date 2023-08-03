@@ -26,7 +26,7 @@ class HomeController
 
             $model = [
                 "title" => "Home",
-                "content" => "Home screen"
+                "content" => "Guest screen"
             ];
             View::render('Home/index', $model);
             return;

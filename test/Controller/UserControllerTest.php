@@ -110,5 +110,21 @@ namespace DudeGenuine\PHP\MVC\Controller {
             $this->expectOutputRegex("[Login failed]");
             $this->expectOutputRegex("[user not found]");
         }
+
+        public function testLogout()
+        {
+            $_POST['id'] = "utifmd";
+            $_POST['name'] = "Utif Milkedori";
+            $_POST['password'] = "121212";
+
+            $this->userController->submitRegister();
+
+            $this->userController->submitLogin();
+
+            $this->userController->logout();
+
+            $this->expectOutputRegex("[Location: /]");
+            $this->expectOutputRegex("[".SessionService::COOKIE_NAME.": ]");
+        }
     }
 }
