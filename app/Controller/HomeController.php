@@ -23,7 +23,7 @@ class HomeController
     function view(): void
     {
         $signedInUser = $this->sessionService->current();
-        if ($signedInUser === null) {
+        if ($signedInUser == null) {
 
             $model = [
                 "title" => "Home",
@@ -40,6 +40,6 @@ class HomeController
                 "name" => $signedInUser->name,
             ]
         ];
-        View::render('Home/index', $model);
+        View::render('Home/dashboard', $model);
     }
 }

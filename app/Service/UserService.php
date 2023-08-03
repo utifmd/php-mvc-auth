@@ -24,7 +24,9 @@ class UserService
         try {
             Database::beginTransaction();
             $isUserExist = $this->repository->findById($request->id);
-            if ($isUserExist != null) throw new ValidationException("User $request->id already exist.");
+
+            if ($isUserExist != null)
+                throw new ValidationException("User $request->id already exist.");
 
             $user = new User(
                 id: $request->id,

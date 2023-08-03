@@ -7,16 +7,21 @@ use DudeGenuine\PHP\MVC\Domain\User;
 use DudeGenuine\PHP\MVC\Exception\ValidationException;
 use DudeGenuine\PHP\MVC\Model\UserLoginRequest;
 use DudeGenuine\PHP\MVC\Model\UserRegisterRequest;
+use DudeGenuine\PHP\MVC\Repository\SessionRepository;
 use DudeGenuine\PHP\MVC\Repository\UserRepository;
 use PHPUnit\Framework\TestCase;
 
 class UserServiceTest extends TestCase
 {
     private UserService $userService;
-
     protected function setUp(): void
     {
-        $userRepository = new UserRepository(Database::getConnection());
+        $connection = Database::getConnection();
+
+        $sessionRepository = new SessionRepository($connection);
+        $sessionRepository->deleteAll();
+
+        $userRepository = new UserRepository($connection);
         $this->userService = new UserService($userRepository);
         $userRepository->deleteAll();
     }

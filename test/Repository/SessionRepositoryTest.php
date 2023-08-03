@@ -21,7 +21,7 @@ class SessionRepositoryTest extends TestCase
         $this->userRepository->deleteAll();
 
         $user = new User(
-            id: "utifmd", name: "Utif Milkedori", password: "121212"
+            id: "utifmd", name: "Utif Milkedori", password: password_hash("121212", PASSWORD_BCRYPT)
         );
         $this->userRepository->save($user);
     }

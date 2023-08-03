@@ -45,13 +45,14 @@ class SessionServiceTest extends TestCase
     {
         $session = $this->sessionService->create("utifmd");
 
-        $_SESSION[SessionService::COOKIE_NAME] = $session->id;
+        $_COOKIE[SessionService::COOKIE_NAME] = $session->id;
 
         $this->sessionService->destroy();
 
         $this->expectOutputRegex("[". SessionService::COOKIE_NAME .": ]");
 
         $result = $this->sessionRepository->findById($session->id);
+
         self::assertNull($result);
     }
 
@@ -59,7 +60,7 @@ class SessionServiceTest extends TestCase
     {
         $session = $this->sessionService->create("utifmd");
 
-        $_SESSION[SessionService::COOKIE_NAME] = $session->id;
+        $_COOKIE[SessionService::COOKIE_NAME] = $session->id;
 
         $user = $this->sessionService->current();
 

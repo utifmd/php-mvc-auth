@@ -6,10 +6,18 @@ namespace DudeGenuine\PHP\MVC\App {
         echo $value;
     }
 }
+namespace DudeGenuine\PHP\MVC\Service {
+    function setcookie(string $name, string $value): void
+    {
+        echo "$name: $value";
+    }
+}
 namespace DudeGenuine\PHP\MVC\Controller {
     use DudeGenuine\PHP\MVC\Config\Database;
     use DudeGenuine\PHP\MVC\Model\UserRegisterRequest;
+    use DudeGenuine\PHP\MVC\Repository\SessionRepository;
     use DudeGenuine\PHP\MVC\Repository\UserRepository;
+    use DudeGenuine\PHP\MVC\Service\SessionService;
     use PHPUnit\Framework\TestCase;
 
     class UserControllerTest extends TestCase
@@ -17,10 +25,15 @@ namespace DudeGenuine\PHP\MVC\Controller {
         private UserController $userController;
         protected function setUp(): void
         {
-            $userRepository = new UserRepository(Database::getConnection());
+            $connection = Database::getConnection();
             $this->userController = new UserController();
 
+            $sessionRepository = new SessionRepository($connection);
+            $sessionRepository->deleteAll();
+
+            $userRepository = new UserRepository($connection);
             $userRepository->deleteAll();
+
             putenv("mode=test");
         }
         function testViewRegister()
@@ -63,6 +76,7 @@ namespace DudeGenuine\PHP\MVC\Controller {
 
             $this->userController->submitLogin();
             $this->expectOutputRegex("[Location: /]");
+            $this->expectOutputRegex("[".SessionService::COOKIE_NAME.":]");
         }
         function testSubmitWrongPasswordLogin()
         {

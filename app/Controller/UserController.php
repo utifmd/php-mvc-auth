@@ -59,7 +59,7 @@ class UserController
     {
         $model = [
             "title" => "Login",
-            "error" => "Login screen"
+            "content" => "Login screen"
         ];
         View::render('User/login', $model);
     }

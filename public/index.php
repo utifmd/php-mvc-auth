@@ -3,10 +3,10 @@
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use DudeGenuine\PHP\MVC\App\Router;
-use DudeGenuine\PHP\MVC\Config\Database;
+//use DudeGenuine\PHP\MVC\Config\Database;
 use DudeGenuine\PHP\MVC\Controller\{HomeController, UserController};
 
-Database::getConnection('prod');
+//Database::getConnection('prod');
 
 // HomeController
 Router::add(
@@ -28,5 +28,17 @@ Router::add(
     '/users/register',
     UserController::class,
     'submitRegister'
+);
+Router::add(
+    'GET',
+    '/users/login',
+    UserController::class,
+    'viewLogin'
+);
+Router::add(
+    'POST',
+    '/users/login',
+    UserController::class,
+    'submitLogin'
 );
 Router::run();
