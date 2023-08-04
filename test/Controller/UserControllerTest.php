@@ -111,6 +111,25 @@ namespace DudeGenuine\PHP\MVC\Controller {
             $this->expectOutputRegex("[user not found]");
         }
 
+        public function testViewProfile()
+        {
+            $_POST['id'] = "utifmd";
+            $_POST['name'] = "Utif Milkedori";
+            $_POST['password'] = "121212";
+
+            $this->userController->submitRegister();
+
+            $this->userController->submitLogin();
+
+            $this->userController->viewProfile();
+
+            $this->expectOutputRegex("[Profile]");
+            $this->expectOutputRegex("[By Utif Milkedori]");
+            $this->expectOutputRegex("[id ". $_POST['id']);
+            $this->expectOutputRegex("[name ". $_POST['name']);
+            $this->expectOutputRegex("[Update Profile]");
+        }
+
         public function testLogout()
         {
             $_POST['id'] = "utifmd";

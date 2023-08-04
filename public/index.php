@@ -46,6 +46,20 @@ Router::add(
 );
 Router::add(
     'GET',
+    '/users/profile',
+    UserController::class,
+    'viewProfile',
+    [UnAuthorizedMiddleware::class]
+);
+Router::add(
+    'POST',
+    '/users/profile',
+    UserController::class,
+    'updateProfile',
+    [UnAuthorizedMiddleware::class]
+);
+Router::add(
+    'GET',
     '/users/logout',
     UserController::class,
     'logout',

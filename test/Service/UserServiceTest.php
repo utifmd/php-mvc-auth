@@ -7,6 +7,8 @@ use DudeGenuine\PHP\MVC\Domain\User;
 use DudeGenuine\PHP\MVC\Exception\ValidationException;
 use DudeGenuine\PHP\MVC\Model\UserLoginRequest;
 use DudeGenuine\PHP\MVC\Model\UserRegisterRequest;
+use DudeGenuine\PHP\MVC\Model\UserResponse;
+use DudeGenuine\PHP\MVC\Model\UserUpdateRequest;
 use DudeGenuine\PHP\MVC\Repository\SessionRepository;
 use DudeGenuine\PHP\MVC\Repository\UserRepository;
 use PHPUnit\Framework\TestCase;
@@ -14,6 +16,7 @@ use PHPUnit\Framework\TestCase;
 class UserServiceTest extends TestCase
 {
     private UserService $userService;
+
     protected function setUp(): void
     {
         $connection = Database::getConnection();
@@ -26,12 +29,22 @@ class UserServiceTest extends TestCase
         $userRepository->deleteAll();
     }
 
-    function testUserRegisterSuccess()
+    private function onUserRegistered(): array
     {
         $userRequest = new UserRegisterRequest(
             id: "utifmd", name: "Utif Milkedori", password: "121212"
         );
         $userResponse = $this->userService->register($userRequest);
+        return [
+            "request" => $userRequest, "response" => $userResponse
+        ];
+    }
+
+    function testUserRegisterSuccess()
+    {
+        $registered = $this->onUserRegistered();
+        $userRequest = $registered["request"];
+        $userResponse = $registered["response"];
 
         self::assertEquals($userResponse->id, $userRequest->id);
         self::assertEquals($userResponse->name, $userRequest->name);
@@ -52,14 +65,11 @@ class UserServiceTest extends TestCase
 
     function testRegisterFailedDuplicate()
     {
-        $userRequest1 = new UserRegisterRequest(
-            id: "utifmd", name: "Utif Milkedori", password: "121212"
-        );
+        $this->onUserRegistered();
+
         $userRequest2 = new UserRegisterRequest(
             id: "utifmd", name: "Utif Milkedori", password: "121212"
         );
-        $this->userService->register($userRequest1);
-
         $this->expectException(ValidationException::class);
 
         $this->userService->register($userRequest2);
@@ -76,12 +86,7 @@ class UserServiceTest extends TestCase
 
     function testLoginWrongPassword()
     {
-        $userRegisterRequest = new UserRegisterRequest(
-            id: "utifmd",
-            name: "Utif Milkedori",
-            password: "121212"
-        );
-        $this->userService->register($userRegisterRequest);
+        $this->onUserRegistered();
 
         $userLoginRequest = new UserLoginRequest(
             id: "utifmd",
@@ -93,14 +98,10 @@ class UserServiceTest extends TestCase
 
         self::assertFalse(password_verify($userLoginRequest->password, $userResponse->password));
     }
+
     function testLoginSuccess()
     {
-        $userRegisterRequest = new UserRegisterRequest(
-            id: "utifmd",
-            name: "Utif Milkedori",
-            password: "121212"
-        );
-        $this->userService->register($userRegisterRequest);
+        $this->onUserRegistered();
 
         $userLoginRequest = new UserLoginRequest(
             id: "utifmd",
@@ -110,5 +111,47 @@ class UserServiceTest extends TestCase
 
         self::assertEquals($userLoginRequest->id, $userResponse->id);
         self::assertTrue(password_verify($userLoginRequest->password, $userResponse->password));
+    }
+
+    public function testUpdateSuccess()
+    {
+        $response = $this->onUserRegistered()["response"];
+        $user = new UserUpdateRequest(
+            id: $response->id, name: "Brad pitt", password: "131313"
+        );
+        $userResponse = $this->userService->update($user);
+
+        self::assertEquals($userResponse->id, $user->id);
+        self::assertEquals($userResponse->name, $user->name);
+        self::assertEquals($userResponse->password, $user->password);
+    }
+
+    public function testUpdateFailed()
+    {
+        $this->onUserRegistered();
+
+        $this->expectException(ValidationException::class);
+
+        $user = new UserUpdateRequest(
+            id: "utif", name: "Tom Cruise", password: "151515"
+        );
+        $userResponse = $this->userService->update($user);
+
+        self::assertEquals($userResponse->id, $user->id);
+        self::assertEquals($userResponse->name, $user->name);
+        self::assertEquals($userResponse->password, $user->password);
+    }
+
+    public function testInvalidInputUpdate()
+    {
+        $registered = $this->onUserRegistered();
+        $userResponse = $registered['response'];
+
+        $this->expectException(ValidationException::class);
+
+        $user = new UserUpdateRequest(
+            id: $userResponse->id, name: "", password: ""
+        );
+        $this->userService->update($user);
     }
 }

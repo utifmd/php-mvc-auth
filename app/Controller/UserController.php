@@ -7,6 +7,7 @@ use DudeGenuine\PHP\MVC\Config\Database;
 use DudeGenuine\PHP\MVC\Exception\ValidationException;
 use DudeGenuine\PHP\MVC\Model\UserLoginRequest;
 use DudeGenuine\PHP\MVC\Model\UserRegisterRequest;
+use DudeGenuine\PHP\MVC\Model\UserUpdateRequest;
 use DudeGenuine\PHP\MVC\Repository\SessionRepository;
 use DudeGenuine\PHP\MVC\Repository\UserRepository;
 use DudeGenuine\PHP\MVC\Service\SessionService;
@@ -81,6 +82,43 @@ class UserController
                 "title" => "Login",
                 "error" => $exception->getMessage()
             ]);
+        }
+    }
+
+    function viewProfile(): void
+    {
+        $user = $this->sessionService->current();
+        if ($user == null) {
+            View::redirect('/users/login');
+        }
+        $model = [
+            "title" => "Profile",
+            "content" => "Profile screen",
+            "user" => $user,
+        ];
+        View::render('User/profile', $model);
+    }
+
+    function updateProfile(): void
+    {
+        try {
+            $user = $this->sessionService->current();
+            $request = new UserUpdateRequest(
+                id: $user->id, name: $_POST['name'], password: $user->password
+            );
+            $request->password = $user->password;
+
+            $this->userService->update($request);
+
+            View::redirect('/');
+        } catch (\Exception $exception) {
+
+            $model = [
+                "title" => "Change Profile",
+                "content" => "Change Profile Screen",
+                "error" => $exception->getMessage()
+            ];
+            View::render('User/profile', $model);
         }
     }
 
