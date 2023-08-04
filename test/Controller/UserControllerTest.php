@@ -36,6 +36,14 @@ namespace DudeGenuine\PHP\MVC\Controller {
 
             putenv("mode=test");
         }
+
+        function setUpRegister()
+        {
+            $_POST['id'] = "utifmd";
+            $_POST['name'] = "Utif Milkedori";
+            $_POST['password'] = "121212";
+            $this->userController->submitRegister();
+        }
         function testViewRegister()
         {
             $this->userController->viewRegister();
@@ -48,15 +56,12 @@ namespace DudeGenuine\PHP\MVC\Controller {
         }
         function testSubmitRegister()
         {
-            $_POST['id'] = "utifmd";
-            $_POST['name'] = "Utif Milkedori";
-            $_POST['password'] = "121212";
-
-            $this->userController->submitRegister();
+            $this->setUpRegister();
             $this->expectOutputRegex('[Location: /users/login]');
         }
         function testViewLogin()
         {
+            $this->setUpRegister();
             $this->userController->viewLogin();
 
             $this->expectOutputRegex('[Login]');
@@ -66,24 +71,19 @@ namespace DudeGenuine\PHP\MVC\Controller {
         }
         function testSubmitLogin()
         {
-            $_POST['id'] = "utifmd";
-            $_POST['name'] = "Utif Milkedori";
-            $_POST['password'] = "121212";
-            $this->userController->submitRegister();
+            $this->setUpRegister();
 
             $_POST['id'] = "utifmd";
             $_POST['password'] = "121212";
 
             $this->userController->submitLogin();
+
             $this->expectOutputRegex("[Location: /]");
             $this->expectOutputRegex("[".SessionService::COOKIE_NAME.":]");
         }
         function testSubmitWrongPasswordLogin()
         {
-            $_POST['id'] = "utifmd";
-            $_POST['name'] = "Utif Milkedori";
-            $_POST['password'] = "121212";
-            $this->userController->submitRegister();
+            $this->setUpRegister();
 
             $_POST['id'] = "utifmd";
             $_POST['password'] = "121213";
@@ -113,11 +113,7 @@ namespace DudeGenuine\PHP\MVC\Controller {
 
         public function testViewProfile()
         {
-            $_POST['id'] = "utifmd";
-            $_POST['name'] = "Utif Milkedori";
-            $_POST['password'] = "121212";
-
-            $this->userController->submitRegister();
+            $this->setUpRegister();
 
             $this->userController->submitLogin();
 
@@ -125,18 +121,14 @@ namespace DudeGenuine\PHP\MVC\Controller {
 
             $this->expectOutputRegex("[Profile]");
             $this->expectOutputRegex("[By Utif Milkedori]");
-            $this->expectOutputRegex("[id ". $_POST['id']);
-            $this->expectOutputRegex("[name ". $_POST['name']);
+            $this->expectOutputRegex("[id ". $_POST['id']. "]");
+            $this->expectOutputRegex("[name ". $_POST['name']. "]");
             $this->expectOutputRegex("[Update Profile]");
         }
 
-        public function testUpdateProfile()
+        public function testUpdateProfileSuccess()
         {
-            $_POST['id'] = "utifmd";
-            $_POST['name'] = "Utif Milkedori";
-            $_POST['password'] = "121212";
-
-            $this->userController->submitRegister();
+            $this->setUpRegister();
 
             $this->userController->submitLogin();
 
@@ -145,8 +137,21 @@ namespace DudeGenuine\PHP\MVC\Controller {
 
             $this->expectOutputRegex("[Profile]");
             $this->expectOutputRegex("[By Utif Milkedori]");
-            $this->expectOutputRegex("[id ". $_POST['id']);
-            $this->expectOutputRegex("[name van houten]");
+            $this->expectOutputRegex("[id ". $_POST['id']. "]");
+            $this->expectOutputRegex("[name ". $_POST['name']. "]");
+            $this->expectOutputRegex("[Update Profile]");
+        }
+        public function testUpdateProfileFailedInvalidInput()
+        {
+            $this->setUpRegister();
+
+            $this->userController->submitLogin();
+
+            $_POST['name'] = "";
+            $this->userController->updateProfile();
+
+            $this->expectOutputRegex("[Location: /users/profile]");
+            $this->expectOutputRegex("[Invalid input format");
             $this->expectOutputRegex("[Update Profile]");
         }
 

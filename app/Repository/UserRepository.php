@@ -3,6 +3,8 @@
 namespace DudeGenuine\PHP\MVC\Repository;
 
 use DudeGenuine\PHP\MVC\Domain\User;
+use DudeGenuine\PHP\MVC\Model\UserResponse;
+use DudeGenuine\PHP\MVC\Model\UserChangePasswordRequest;
 
 class UserRepository
 {
@@ -47,6 +49,17 @@ class UserRepository
         } finally {
             $statement->closeCursor();
         }
+    }
+
+    function changePassword(User $request): UserResponse
+    {
+        $statement = $this->connection->prepare("UPDATE users SET password = ? WHERE id = ?");
+        $statement->execute([
+            $request->password, $request->id
+        ]);
+        return new UserResponse(
+            id: $request->id, name: $request->name, password: $request->password
+        );
     }
 
     function deleteAll(): void

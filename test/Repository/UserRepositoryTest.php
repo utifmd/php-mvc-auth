@@ -21,14 +21,19 @@ class UserRepositoryTest extends TestCase
         $this->userRepository->deleteAll();
     }
 
-    function testSaveSuccess()
+    private function setUpSaveUser(): User
     {
         $user = new User(
             id: "utifmd",
             name: "Utif Milkedori",
-            password: "121212"
+            password: password_hash("121212", PASSWORD_BCRYPT)
         );
-        $this->userRepository->save($user);
+        return $this->userRepository->save($user);
+    }
+
+    function testSaveSuccess()
+    {
+        $user = $this->setUpSaveUser();
 
         $result = $this->userRepository->findById($user->id);
 
@@ -39,19 +44,31 @@ class UserRepositoryTest extends TestCase
 
     public function testUpdateSuccess()
     {
-        $user = new User(
-            id: "utifmd", name: "Utif Milkedori", password: password_hash("121212", PASSWORD_BCRYPT)
-        );
-        $response = $this->userRepository->save($user);
+        $user = $this->setUpSaveUser();
 
         $newUser = new User(
-            id: "utifmd", name: "Tom Cruise", password: password_hash("131313", PASSWORD_BCRYPT)
+            id: $user->id,
+            name: "Tom Cruise",
+            password: password_hash("131313", PASSWORD_BCRYPT)
         );
         $updatedResponse = $this->userRepository->update($newUser);
 
         self::assertEquals($newUser->id, $updatedResponse->id);
         self::assertEquals($newUser->name, $updatedResponse->name);
         self::assertEquals($newUser->password, $updatedResponse->password);
+    }
+
+    public function testChangePassword()
+    {
+        $user = $this->setUpSaveUser();
+
+        $newUser = new User(
+            id: $user->id,
+            name: $user->name,
+            password: password_hash("212121", PASSWORD_BCRYPT)
+        );
+        $userResponse = $this->userRepository->changePassword($newUser);
+        self::assertEquals($userResponse->password, $newUser->password);
     }
 
     function testFindByIdIsNull()

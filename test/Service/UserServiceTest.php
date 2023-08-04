@@ -5,6 +5,7 @@ namespace DudeGenuine\PHP\MVC\Service;
 use DudeGenuine\PHP\MVC\Config\Database;
 use DudeGenuine\PHP\MVC\Domain\User;
 use DudeGenuine\PHP\MVC\Exception\ValidationException;
+use DudeGenuine\PHP\MVC\Model\UserChangePasswordRequest;
 use DudeGenuine\PHP\MVC\Model\UserLoginRequest;
 use DudeGenuine\PHP\MVC\Model\UserRegisterRequest;
 use DudeGenuine\PHP\MVC\Model\UserResponse;
@@ -29,7 +30,7 @@ class UserServiceTest extends TestCase
         $userRepository->deleteAll();
     }
 
-    private function onUserRegistered(): array
+    private function setUpRegister(): array
     {
         $userRequest = new UserRegisterRequest(
             id: "utifmd", name: "Utif Milkedori", password: "121212"
@@ -42,7 +43,7 @@ class UserServiceTest extends TestCase
 
     function testUserRegisterSuccess()
     {
-        $registered = $this->onUserRegistered();
+        $registered = $this->setUpRegister();
         $userRequest = $registered["request"];
         $userResponse = $registered["response"];
 
@@ -65,7 +66,7 @@ class UserServiceTest extends TestCase
 
     function testRegisterFailedDuplicate()
     {
-        $this->onUserRegistered();
+        $this->setUpRegister();
 
         $userRequest2 = new UserRegisterRequest(
             id: "utifmd", name: "Utif Milkedori", password: "121212"
@@ -86,7 +87,7 @@ class UserServiceTest extends TestCase
 
     function testLoginWrongPassword()
     {
-        $this->onUserRegistered();
+        $this->setUpRegister();
 
         $userLoginRequest = new UserLoginRequest(
             id: "utifmd",
@@ -101,7 +102,7 @@ class UserServiceTest extends TestCase
 
     function testLoginSuccess()
     {
-        $this->onUserRegistered();
+        $this->setUpRegister();
 
         $userLoginRequest = new UserLoginRequest(
             id: "utifmd",
@@ -115,7 +116,7 @@ class UserServiceTest extends TestCase
 
     public function testUpdateSuccess()
     {
-        $response = $this->onUserRegistered()["response"];
+        $response = $this->setUpRegister()["response"];
         $user = new UserUpdateRequest(
             id: $response->id, name: "Brad pitt", password: "131313"
         );
@@ -128,7 +129,7 @@ class UserServiceTest extends TestCase
 
     public function testUpdateFailed()
     {
-        $this->onUserRegistered();
+        $this->setUpRegister();
 
         $this->expectException(ValidationException::class);
 
@@ -142,9 +143,21 @@ class UserServiceTest extends TestCase
         self::assertEquals($userResponse->password, $user->password);
     }
 
+    public function testChangeUserPasswordSuccess()
+    {
+        $response = $this->setUpRegister()["response"];
+
+        $changePasswordRequest = new UserChangePasswordRequest(
+            id: $response->id, oldPassword: "121213", newPassword: "414141"
+        );
+        $userResponse = $this->userService->changePassword($changePasswordRequest);
+
+        self::assertEquals($userResponse->password, $changePasswordRequest->newPassword);
+    }
+
     public function testInvalidInputUpdate()
     {
-        $registered = $this->onUserRegistered();
+        $registered = $this->setUpRegister();
         $userResponse = $registered['response'];
 
         $this->expectException(ValidationException::class);

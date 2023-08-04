@@ -8,6 +8,7 @@ use DudeGenuine\PHP\MVC\Exception\ValidationException;
 use DudeGenuine\PHP\MVC\Model\UserLoginRequest;
 use DudeGenuine\PHP\MVC\Model\UserRegisterRequest;
 use DudeGenuine\PHP\MVC\Model\UserResponse;
+use DudeGenuine\PHP\MVC\Model\UserChangePasswordRequest;
 use DudeGenuine\PHP\MVC\Model\UserUpdateRequest;
 use DudeGenuine\PHP\MVC\Repository\UserRepository;
 
@@ -19,6 +20,7 @@ class UserService
     {
         $this->repository = $repository;
     }
+
     function register(UserRegisterRequest $request): UserResponse
     {
         $this->validateRegisterRequest($request);
@@ -47,12 +49,14 @@ class UserService
             throw $exception;
         }
     }
+
     private function validateRegisterRequest(UserRegisterRequest $request): void
     {
-        if (trim($request->id) == "" || trim($request->name) == "" || trim($request->password) == ""){
+        if (trim($request->id) == "" || trim($request->name) == "" || trim($request->password) == "") {
             throw new ValidationException("Invalid input format");
         }
     }
+
     function login(UserLoginRequest $request): UserResponse
     {
         $this->validateLoginRequest($request);
@@ -68,9 +72,10 @@ class UserService
             id: $user->id, name: $user->name, password: $user->password
         );
     }
+
     private function validateLoginRequest(UserLoginRequest $request): void
     {
-        if (trim($request->id) == "" || trim($request->password) == ""){
+        if (trim($request->id) == "" || trim($request->password) == "") {
             throw new ValidationException("Invalid input format");
         }
     }
@@ -94,14 +99,48 @@ class UserService
             return new UserResponse(
                 id: $response->id, name: $response->name, password: $response->password
             );
-        } catch (\Exception $exception){
+        } catch (\Exception $exception) {
             throw new ValidationException($exception->getMessage());
         }
     }
 
     private function validateUpdateRequest(UserUpdateRequest $request)
     {
-        if (trim($request->id) == "" || trim($request->name) == "" || trim($request->password) ==""){
+        if (trim($request->id) == "" || trim($request->name) == "" || trim($request->password) == "") {
+            throw new ValidationException("Invalid input format");
+        }
+    }
+
+    function changePassword(UserChangePasswordRequest $request): UserResponse
+    {
+        $this->validateChangePassword($request);
+        try {
+            Database::beginTransaction();
+            $user = $this->repository->findById($request->id);
+            if ($user == null) {
+                throw new ValidationException("User not found");
+            }
+            if (!password_verify($request->oldPassword, $user->password)) {
+                throw new ValidationException("Old password is wrong");
+            }
+            $user->password = $request->newPassword;
+            $this->repository->update($user);
+            Database::commitTransaction();
+
+            return new UserResponse(
+                id: $request->id, name: $user->name, password: $user->password
+            );
+        } catch (\Exception $exception) {
+            Database::rollbackTransaction();
+            throw new ValidationException($exception->getMessage());
+        }
+    }
+
+    private function validateChangePassword(UserChangePasswordRequest $request)
+    {
+        if (trim($request->id) == "" ||
+            trim($request->newPassword) == "" ||
+            trim($request->oldPassword) == "") {
             throw new ValidationException("Invalid input format");
         }
     }
