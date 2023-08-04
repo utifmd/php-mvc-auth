@@ -130,6 +130,26 @@ namespace DudeGenuine\PHP\MVC\Controller {
             $this->expectOutputRegex("[Update Profile]");
         }
 
+        public function testUpdateProfile()
+        {
+            $_POST['id'] = "utifmd";
+            $_POST['name'] = "Utif Milkedori";
+            $_POST['password'] = "121212";
+
+            $this->userController->submitRegister();
+
+            $this->userController->submitLogin();
+
+            $_POST['name'] = "Charlie Chaplain";
+            $this->userController->updateProfile();
+
+            $this->expectOutputRegex("[Profile]");
+            $this->expectOutputRegex("[By Utif Milkedori]");
+            $this->expectOutputRegex("[id ". $_POST['id']);
+            $this->expectOutputRegex("[name van houten]");
+            $this->expectOutputRegex("[Update Profile]");
+        }
+
         public function testLogout()
         {
             $_POST['id'] = "utifmd";
