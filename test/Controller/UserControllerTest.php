@@ -155,7 +155,34 @@ namespace DudeGenuine\PHP\MVC\Controller {
             $this->expectOutputRegex("[Update Profile]");
         }
 
-        public function testLogout()
+        public function testChangeUserPasswordSuccess()
+        {
+            $this->setUpRegister();
+            $this->userController->submitLogin();
+
+            $_POST['oldPassword'] = "121212";
+            $_POST['newPassword'] = "313131";
+
+            $this->userController->changePassword();
+
+            $this->expectOutputRegex("[Location: /]");
+            $this->expectOutputRegex("[". SessionService::COOKIE_NAME ."]");
+        }
+
+        public function testChangeUserWrongOldPasswordFailed()
+        {
+            $this->setUpRegister();
+            $this->userController->submitLogin();
+
+            $_POST['oldPassword'] = "121222";
+            $_POST['newPassword'] = "313131";
+
+            $this->userController->changePassword();
+
+            $this->expectOutputRegex("[Old password is wrong]");
+        }
+
+        public function testLogoutSuccess()
         {
             $_POST['id'] = "utifmd";
             $_POST['name'] = "Utif Milkedori";

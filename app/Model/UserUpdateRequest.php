@@ -8,4 +8,8 @@ class UserUpdateRequest
     {
         $this->password = password_hash($this->password, PASSWORD_BCRYPT);
     }
+    public function __toString(): string
+    {
+        return "password: " . $this->password . ", name: " . $this->name . "id: " . $this->id;
+    }
 }

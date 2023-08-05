@@ -123,8 +123,9 @@ class UserService
             if (!password_verify($request->oldPassword, $user->password)) {
                 throw new ValidationException("Old password is wrong");
             }
-            $user->password = $request->newPassword;
-            $this->repository->update($user);
+            $user->password = password_hash($request->newPassword, PASSWORD_BCRYPT);
+
+            $this->repository->changePassword($user);
             Database::commitTransaction();
 
             return new UserResponse(

@@ -21,6 +21,7 @@ class Database
 
     public static function beginTransaction(): void
     {
+        if (self::$pdo?->inTransaction()) return;
         self::$pdo?->beginTransaction();
     }
     public static function commitTransaction(): void

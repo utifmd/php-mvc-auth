@@ -5,6 +5,7 @@ namespace DudeGenuine\PHP\MVC\Controller;
 use DudeGenuine\PHP\MVC\App\View;
 use DudeGenuine\PHP\MVC\Config\Database;
 use DudeGenuine\PHP\MVC\Exception\ValidationException;
+use DudeGenuine\PHP\MVC\Model\UserChangePasswordRequest;
 use DudeGenuine\PHP\MVC\Model\UserLoginRequest;
 use DudeGenuine\PHP\MVC\Model\UserRegisterRequest;
 use DudeGenuine\PHP\MVC\Model\UserUpdateRequest;
@@ -12,11 +13,14 @@ use DudeGenuine\PHP\MVC\Repository\SessionRepository;
 use DudeGenuine\PHP\MVC\Repository\UserRepository;
 use DudeGenuine\PHP\MVC\Service\SessionService;
 use DudeGenuine\PHP\MVC\Service\UserService;
+use Monolog\Handler\StreamHandler;
+use Monolog\Logger;
 
 class UserController
 {
     private UserService $userService;
     private SessionService $sessionService;
+    private Logger $logger;
 
     public function __construct()
     {
@@ -26,6 +30,9 @@ class UserController
 
         $sessionRepository = new SessionRepository($connection);
         $this->sessionService = new SessionService($sessionRepository, $userRepository);
+
+        $this->logger = new Logger(UserController::class);
+        $this->logger->pushHandler(new StreamHandler('info.log'));
     }
 
     function viewRegister(): void
@@ -122,6 +129,43 @@ class UserController
         }
     }
 
+    function viewChangePassword(): void
+    {
+        $user = $this->sessionService->current();
+        if ($user == null) {
+            View::redirect('/users/login');
+        }
+        $model = [
+            "title" => "Change Password",
+            "content" => "Change Password Screen",
+            "user" => $user,
+        ];
+        View::render('User/password', $model);
+    }
+
+    function changePassword(): void
+    {
+        $user = $this->sessionService->current();
+        try {
+            $request = new UserChangePasswordRequest(
+                id: $_POST['id'] ?? $user->id,
+                oldPassword: $_POST['oldPassword'],
+                newPassword: $_POST['newPassword']
+            );
+            $this->userService->changePassword($request);
+
+            View::redirect('/');
+
+        } catch (\Exception $exception) {
+            $model = [
+                "title" => "Change Password",
+                "content" => "Change password screen",
+                "error" => $exception->getMessage(),
+                "user" => $user
+            ];
+            View::render('User/password', $model);
+        }
+    }
     function logout(): void
     {
         $this->sessionService->destroy();

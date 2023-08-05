@@ -65,4 +65,20 @@ Router::add(
     'logout',
     [UnAuthorizedMiddleware::class]
 );
+
+Router::add(
+    'GET',
+    '/users/password',
+    UserController::class,
+    'viewChangePassword',
+    [UnAuthorizedMiddleware::class]
+);
+
+Router::add(
+    'POST',
+    '/users/password',
+    UserController::class,
+    'changePassword',
+    [UnAuthorizedMiddleware::class]
+);
 Router::run();

@@ -145,14 +145,28 @@ class UserServiceTest extends TestCase
 
     public function testChangeUserPasswordSuccess()
     {
-        $response = $this->setUpRegister()["response"];
+        $setUpRegister = $this->setUpRegister();
+        $response = $setUpRegister["response"];
 
         $changePasswordRequest = new UserChangePasswordRequest(
-            id: $response->id, oldPassword: "121213", newPassword: "414141"
+            id: $response->id, oldPassword: "121212", newPassword: "414141"
         );
         $userResponse = $this->userService->changePassword($changePasswordRequest);
 
-        self::assertEquals($userResponse->password, $changePasswordRequest->newPassword);
+        self::assertTrue(password_verify('414141', $userResponse->password));
+    }
+
+    public function testChangeUserOldPasswordWrongFailed()
+    {
+        $setUpRegister = $this->setUpRegister();
+        $response = $setUpRegister["response"];
+
+        $this->expectException(ValidationException::class);
+
+        $changePasswordRequest = new UserChangePasswordRequest(
+            id: $response->id, oldPassword: "121211", newPassword: "414141"
+        );
+        $this->userService->changePassword($changePasswordRequest);
     }
 
     public function testInvalidInputUpdate()
