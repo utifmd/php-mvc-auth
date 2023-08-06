@@ -1,201 +1,193 @@
 <?php
 
-namespace DudeGenuine\PHP\MVC\App {
-    function header(string $value): void
+namespace DudeGenuine\PHP\MVC\Controller;
+require_once __DIR__ . '/../Helper/helper.php';
+use DudeGenuine\PHP\MVC\Config\Database;
+use DudeGenuine\PHP\MVC\Model\UserRegisterRequest;
+use DudeGenuine\PHP\MVC\Repository\SessionRepository;
+use DudeGenuine\PHP\MVC\Repository\UserRepository;
+use DudeGenuine\PHP\MVC\Service\SessionService;
+use PHPUnit\Framework\TestCase;
+
+class UserControllerTest extends TestCase
+{
+    private UserController $userController;
+    private UserRepository $userRepository;
+    protected function setUp(): void
     {
-        echo $value;
+        $connection = Database::getConnection();
+        $this->userController = new UserController();
+
+        $sessionRepository = new SessionRepository($connection);
+        $sessionRepository->deleteAll();
+
+        $this->userRepository = new UserRepository($connection);
+        $this->userRepository->deleteAll();
+
+        putenv("mode=test");
     }
-}
-namespace DudeGenuine\PHP\MVC\Service {
-    function setcookie(string $name, string $value): void
+
+    function setUpRegister(): void
     {
-        echo "$name: $value";
+        $_POST['id'] = "utifmd";
+        $_POST['name'] = "Utif Milkedori";
+        $_POST['password'] = "121212";
+        $this->userController->submitRegister();
     }
-}
-namespace DudeGenuine\PHP\MVC\Controller {
-    use DudeGenuine\PHP\MVC\Config\Database;
-    use DudeGenuine\PHP\MVC\Model\UserRegisterRequest;
-    use DudeGenuine\PHP\MVC\Repository\SessionRepository;
-    use DudeGenuine\PHP\MVC\Repository\UserRepository;
-    use DudeGenuine\PHP\MVC\Service\SessionService;
-    use PHPUnit\Framework\TestCase;
-
-    class UserControllerTest extends TestCase
+    function testViewRegister()
     {
-        private UserController $userController;
-        protected function setUp(): void
-        {
-            $connection = Database::getConnection();
-            $this->userController = new UserController();
+        $this->userController->viewRegister();
 
-            $sessionRepository = new SessionRepository($connection);
-            $sessionRepository->deleteAll();
+        $this->expectOutputRegex('[Register]');
+        $this->expectOutputRegex('[Utif Milkedori]');
+        $this->expectOutputRegex('[Id]');
+        $this->expectOutputRegex('[Name]');
+        $this->expectOutputRegex('[Password]');
+    }
+    function testSubmitRegister()
+    {
+        $this->setUpRegister();
+        $this->expectOutputRegex('[Location: /users/login]');
+    }
+    function testViewLogin()
+    {
+        $this->setUpRegister();
+        $this->userController->viewLogin();
 
-            $userRepository = new UserRepository($connection);
-            $userRepository->deleteAll();
+        $this->expectOutputRegex('[Login]');
+        $this->expectOutputRegex('[Utif Milkedori]');
+        $this->expectOutputRegex('[Id]');
+        $this->expectOutputRegex('[Password]');
+    }
+    function testSubmitLogin()
+    {
+        $this->setUpRegister();
 
-            putenv("mode=test");
-        }
+        $_POST['id'] = "utifmd";
+        $_POST['password'] = "121212";
 
-        function setUpRegister()
-        {
-            $_POST['id'] = "utifmd";
-            $_POST['name'] = "Utif Milkedori";
-            $_POST['password'] = "121212";
-            $this->userController->submitRegister();
-        }
-        function testViewRegister()
-        {
-            $this->userController->viewRegister();
+        $this->userController->submitLogin();
 
-            $this->expectOutputRegex('[Register]');
-            $this->expectOutputRegex('[Utif Milkedori]');
-            $this->expectOutputRegex('[Id]');
-            $this->expectOutputRegex('[Name]');
-            $this->expectOutputRegex('[Password]');
-        }
-        function testSubmitRegister()
-        {
-            $this->setUpRegister();
-            $this->expectOutputRegex('[Location: /users/login]');
-        }
-        function testViewLogin()
-        {
-            $this->setUpRegister();
-            $this->userController->viewLogin();
+        $this->expectOutputRegex("[Location: /]");
+        $this->expectOutputRegex("[".SessionService::COOKIE_NAME.":]");
+    }
+    function testSubmitWrongPasswordLogin()
+    {
+        $this->setUpRegister();
 
-            $this->expectOutputRegex('[Login]');
-            $this->expectOutputRegex('[Utif Milkedori]');
-            $this->expectOutputRegex('[Id]');
-            $this->expectOutputRegex('[Password]');
-        }
-        function testSubmitLogin()
-        {
-            $this->setUpRegister();
+        $_POST['id'] = "utifmd";
+        $_POST['password'] = "121213";
 
-            $_POST['id'] = "utifmd";
-            $_POST['password'] = "121212";
+        $this->userController->submitLogin();
+        $this->expectOutputRegex("[Login failed]");
+        $this->expectOutputRegex("[id or username does not match]");
+    }
+    function testSubmitInvalidLoginForm()
+    {
+        $_POST['id'] = "";
+        $_POST['password'] = "";
 
-            $this->userController->submitLogin();
+        $this->userController->submitLogin();
+        $this->expectOutputRegex("[Login failed]");
+        $this->expectOutputRegex("[Invalid input format]");
+    }
+    function testSubmitLoginNotFound()
+    {
+        $_POST['id'] = "notFound";
+        $_POST['password'] = "121212";
 
-            $this->expectOutputRegex("[Location: /]");
-            $this->expectOutputRegex("[".SessionService::COOKIE_NAME.":]");
-        }
-        function testSubmitWrongPasswordLogin()
-        {
-            $this->setUpRegister();
+        $this->userController->submitLogin();
+        $this->expectOutputRegex("[Login failed]");
+        $this->expectOutputRegex("[user not found]");
+    }
 
-            $_POST['id'] = "utifmd";
-            $_POST['password'] = "121213";
+    public function testViewProfile()
+    {
+        $this->setUpRegister();
 
-            $this->userController->submitLogin();
-            $this->expectOutputRegex("[Login failed]");
-            $this->expectOutputRegex("[id or username does not match]");
-        }
-        function testSubmitInvalidLoginForm()
-        {
-            $_POST['id'] = "";
-            $_POST['password'] = "";
+        $this->userController->submitLogin();
 
-            $this->userController->submitLogin();
-            $this->expectOutputRegex("[Login failed]");
-            $this->expectOutputRegex("[Invalid input format]");
-        }
-        function testSubmitLoginNotFound()
-        {
-            $_POST['id'] = "notFound";
-            $_POST['password'] = "121212";
+        $this->userController->viewProfile();
 
-            $this->userController->submitLogin();
-            $this->expectOutputRegex("[Login failed]");
-            $this->expectOutputRegex("[user not found]");
-        }
+        $this->expectOutputRegex("[Profile]");
+        $this->expectOutputRegex("[By Utif Milkedori]");
+        $this->expectOutputRegex("[id ". $_POST['id']. "]");
+        $this->expectOutputRegex("[name ". $_POST['name']. "]");
+        $this->expectOutputRegex("[Update Profile]");
+    }
 
-        public function testViewProfile()
-        {
-            $this->setUpRegister();
+    public function testUpdateProfileSuccess()
+    {
+        $this->setUpRegister();
 
-            $this->userController->submitLogin();
+        $this->userController->submitLogin();
 
-            $this->userController->viewProfile();
+        $_POST['name'] = "Charlie Chaplain";
+        $this->userController->updateProfile();
 
-            $this->expectOutputRegex("[Profile]");
-            $this->expectOutputRegex("[By Utif Milkedori]");
-            $this->expectOutputRegex("[id ". $_POST['id']. "]");
-            $this->expectOutputRegex("[name ". $_POST['name']. "]");
-            $this->expectOutputRegex("[Update Profile]");
-        }
+        $this->expectOutputRegex("[Profile]");
+        $this->expectOutputRegex("[By Utif Milkedori]");
+        $this->expectOutputRegex("[id ". $_POST['id']. "]");
+        $this->expectOutputRegex("[name ". $_POST['name']. "]");
+        $this->expectOutputRegex("[Update Profile]");
+    }
+    public function testUpdateProfileFailedInvalidInput()
+    {
+        $this->setUpRegister();
 
-        public function testUpdateProfileSuccess()
-        {
-            $this->setUpRegister();
+        $this->userController->submitLogin();
 
-            $this->userController->submitLogin();
+        $_POST['name'] = "";
+        $this->userController->updateProfile();
 
-            $_POST['name'] = "Charlie Chaplain";
-            $this->userController->updateProfile();
+        $this->expectOutputRegex("[Location: /users/profile]");
+        $this->expectOutputRegex("[Invalid input format");
+        $this->expectOutputRegex("[Update Profile]");
+    }
 
-            $this->expectOutputRegex("[Profile]");
-            $this->expectOutputRegex("[By Utif Milkedori]");
-            $this->expectOutputRegex("[id ". $_POST['id']. "]");
-            $this->expectOutputRegex("[name ". $_POST['name']. "]");
-            $this->expectOutputRegex("[Update Profile]");
-        }
-        public function testUpdateProfileFailedInvalidInput()
-        {
-            $this->setUpRegister();
+    public function testChangeUserPasswordSuccess()
+    {
+        $this->setUpRegister();
+        $this->userController->submitLogin();
 
-            $this->userController->submitLogin();
+        $_POST['oldPassword'] = "121212";
+        $_POST['newPassword'] = "313131";
 
-            $_POST['name'] = "";
-            $this->userController->updateProfile();
+        $this->userController->changePassword();
 
-            $this->expectOutputRegex("[Location: /users/profile]");
-            $this->expectOutputRegex("[Invalid input format");
-            $this->expectOutputRegex("[Update Profile]");
-        }
+        $this->expectOutputRegex("[Location: /]");
+        $this->expectOutputRegex("[". SessionService::COOKIE_NAME ."]");
 
-        public function testChangeUserPasswordSuccess()
-        {
-            $this->setUpRegister();
-            $this->userController->submitLogin();
+        $user = $this->userRepository->findById($_POST['id']);
+        self::assertTrue(password_verify($_POST['newPassword'], $user->password));
+    }
 
-            $_POST['oldPassword'] = "121212";
-            $_POST['newPassword'] = "313131";
+    public function testChangeUserWrongOldPasswordFailed()
+    {
+        $this->setUpRegister();
+        $this->userController->submitLogin();
 
-            $this->userController->changePassword();
+        $_POST['oldPassword'] = "121222";
+        $_POST['newPassword'] = "313131";
 
-            $this->expectOutputRegex("[Location: /]");
-            $this->expectOutputRegex("[". SessionService::COOKIE_NAME ."]");
-        }
+        $this->userController->changePassword();
 
-        public function testChangeUserWrongOldPasswordFailed()
-        {
-            $this->setUpRegister();
-            $this->userController->submitLogin();
+        $this->expectOutputRegex("[Old password is wrong]");
+    }
 
-            $_POST['oldPassword'] = "121222";
-            $_POST['newPassword'] = "313131";
+    public function testLogoutSuccess()
+    {
+        $_POST['id'] = "utifmd";
+        $_POST['name'] = "Utif Milkedori";
+        $_POST['password'] = "121212";
 
-            $this->userController->changePassword();
+        $this->userController->submitRegister();
 
-            $this->expectOutputRegex("[Old password is wrong]");
-        }
+        $this->userController->submitLogin();
 
-        public function testLogoutSuccess()
-        {
-            $_POST['id'] = "utifmd";
-            $_POST['name'] = "Utif Milkedori";
-            $_POST['password'] = "121212";
+        $this->userController->logout();
 
-            $this->userController->submitRegister();
-
-            $this->userController->submitLogin();
-
-            $this->userController->logout();
-
-            $this->expectOutputRegex("[Location: /]");
-            $this->expectOutputRegex("[".SessionService::COOKIE_NAME.": ]");
-        }
+        $this->expectOutputRegex("[Location: /]");
+        $this->expectOutputRegex("[".SessionService::COOKIE_NAME.": ]");
     }
 }

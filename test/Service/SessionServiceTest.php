@@ -2,11 +2,7 @@
 
 namespace DudeGenuine\PHP\MVC\Service;
 
-function setcookie(string $name, string $value): void
-{
-    echo "$name: $value";
-}
-
+require_once __DIR__ . '/../Helper/helper.php';
 use DudeGenuine\PHP\MVC\Config\Database;
 use DudeGenuine\PHP\MVC\Domain\User;
 use DudeGenuine\PHP\MVC\Repository\SessionRepository;
